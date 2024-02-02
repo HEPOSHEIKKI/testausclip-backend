@@ -1,10 +1,10 @@
 
 use serde_derive::{Serialize, Deserialize};
-use actix_web::{get, App, HttpServer, Responder};
+use actix_web::{get, web, App, HttpServer, Responder};
 
 mod api;
 use api::clip::get_clip;
-use api::clip::index;
+use api::clip::upload;
 
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -28,7 +28,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .service(ping)
             .service(get_clip)
-            .service(index)
+            .route("/clip/upload", web::post().to(upload))
     })
         .bind("127.0.0.1:8080")?
         .run()
