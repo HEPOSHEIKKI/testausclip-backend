@@ -8,7 +8,7 @@ use uuid::Uuid;
 use tokio::{fs, io::AsyncWriteExt as _};
 use file_format::FileFormat;
 
-#[get("/clip/get/{id}")]
+#[get("/api/clip/get/{id}")]
 pub async fn get_clip(path: web::Path<String>) -> Result<actix_files::NamedFile, actix_web::Error> {
     let id: String = path.to_string();
     let file = actix_files::NamedFile::open(format!("/home/otto/Videos/Clips/{}.mp4", id))?;

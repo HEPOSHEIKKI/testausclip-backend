@@ -28,7 +28,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .service(ping)
             .service(get_clip)
-            .route("/clip/upload", web::post().to(upload))
+            .route("/api/clip/upload", web::post().to(upload))
     })
         .bind("127.0.0.1:8080")?
         .run()
