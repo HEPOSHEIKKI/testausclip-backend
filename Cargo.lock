@@ -571,6 +571,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "25cbce373ec4653f1a01a31e8a5e5ec0c622dc27ff9c4e6606eefef5cbbed4a5"
 
 [[package]]
+name = "file-format"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "865ed54301d7e5136763302a3c9e595317e08a3119e19a078ab1ed269eb18edc"
+
+[[package]]
 name = "flate2"
 version = "1.0.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1261,6 +1267,7 @@ dependencies = [
  "actix-multipart",
  "actix-web",
  "confy",
+ "file-format",
  "futures-util",
  "mime",
  "serde",

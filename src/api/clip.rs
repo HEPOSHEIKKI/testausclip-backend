@@ -1,10 +1,12 @@
+
 use actix_files;
 use actix_web::{get, http::header::{ContentDisposition, DispositionType, CONTENT_LENGTH}, web::{self}, HttpRequest, HttpResponse};
-use actix_multipart::{ form, Field, Multipart };
+use actix_multipart:: Multipart ;
 use futures_util::TryStreamExt as _;
-use mime::{Mime, Name, IMAGE_GIF, IMAGE_JPEG, IMAGE_PNG, MP4, MPEG, PNG, VIDEO};
+use mime::{Mime, APPLICATION_OCTET_STREAM};
 use uuid::Uuid;
 use tokio::{fs, io::AsyncWriteExt as _};
+use file_format::FileFormat;
 
 #[get("/clip/get/{id}")]
 pub async fn get_clip(path: web::Path<String>) -> Result<actix_files::NamedFile, actix_web::Error> {
@@ -22,7 +24,7 @@ pub async fn get_clip(path: web::Path<String>) -> Result<actix_files::NamedFile,
 pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
     let max_file_size: usize = 300_000_000;
     let max_file_count: usize = 1;
-    let legal_filetypes: [Mime; 2] = [IMAGE_PNG, IMAGE_JPEG];
+    let legal_filetypes: [Mime; 1] = [APPLICATION_OCTET_STREAM];
     let dir: &str = "/home/otto/Videos/Clips/";
 
     let content_length: usize = match req.headers().get(CONTENT_LENGTH) {
@@ -33,6 +35,8 @@ pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
     if content_length == 0 || content_length > max_file_size {
         return HttpResponse::BadRequest().into();
     }
+
+    let new_uuid: Uuid = Uuid::new_v4();
 
     let mut current_count: usize = 0;
     loop {
@@ -52,18 +56,28 @@ pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
             if !legal_filetypes.contains(&filetype.unwrap()) {
                 continue;
             }
-
             let destination: String = format!(
-                "{}{}-{}",
+                "{}{}.mp4",
                 dir,
-                Uuid::new_v4(),
-                field.content_disposition().get_filename().unwrap()
+                new_uuid
             );
 
             let mut saved_file: fs::File = fs::File::create(&destination).await.unwrap();
+            let mut in_memory_data: Vec<u8> = Vec::new();
+
+            
             while let Ok(Some(chunk)) = field.try_next().await {
-                let _ = saved_file.write_all(&chunk).await.unwrap();
+                in_memory_data.extend_from_slice(&chunk);
             }
+            
+            let format: FileFormat = FileFormat::from_bytes(&in_memory_data);
+            if format != FileFormat::Mpeg4Part14 {
+                return HttpResponse::BadRequest().into();
+            }
+            else {
+                let _ = saved_file.write_all(&in_memory_data).await.unwrap();
+            }
+            
             
 
         }
@@ -74,6 +88,6 @@ pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
         current_count += 1
     }
 
-    HttpResponse::Ok().into()
+    HttpResponse::Ok().body(new_uuid.to_string())
 
 }
