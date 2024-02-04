@@ -3,7 +3,7 @@ extern crate diesel;
 extern crate dotenv;
 
 use serde_derive::{Serialize, Deserialize};
-use actix_web::{get, web, App, HttpServer, Responder};
+use actix_web::{get, App, HttpServer, Responder};
 
 mod api;
 use api::clip::get_clip;

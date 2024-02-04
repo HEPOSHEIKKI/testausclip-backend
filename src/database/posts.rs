@@ -1,4 +1,4 @@
-use crate::models::{NewPost, Post};
+use crate::models::NewPost;
 use super::{establish_connection, CreatePost};
 use diesel::prelude::*;
 use uuid::Uuid;
@@ -6,7 +6,6 @@ use uuid::Uuid;
 
 pub async fn create_post(post: CreatePost) -> String {
     use crate::schema::posts::dsl::*;
-    use crate::models::Post;
 
     let connection = &mut establish_connection();
     let uid = Uuid::new_v4().to_string();

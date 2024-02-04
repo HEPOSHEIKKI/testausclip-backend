@@ -1,16 +1,14 @@
 
-use std::path;
 
 use actix_files;
 use actix_web::{get, http::header::{ContentDisposition, DispositionType, CONTENT_LENGTH}, post, web::{self}, HttpRequest, HttpResponse};
 use actix_multipart:: Multipart ;
 use futures_util::TryStreamExt as _;
 use mime::{Mime, APPLICATION_OCTET_STREAM};
-use uuid::Uuid;
 use tokio::{fs, io::AsyncWriteExt as _};
 use file_format::FileFormat;
 
-use crate::{database::posts::create_post, models::NewPost};
+use crate::database::posts::create_post;
 use crate::database::CreatePost;
 
 #[get("/v1/clip/get/{id}")]
@@ -28,7 +26,7 @@ pub async fn get_clip(path: web::Path<String>) -> Result<actix_files::NamedFile,
 #[post("/v1/clip/upload")]
 pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
     let max_file_size: usize = 300_000_000;
-    let max_file_count: usize = 1;
+    let max_file_count: usize = 2;
     let legal_filetypes: [Mime; 1] = [APPLICATION_OCTET_STREAM];
     let dir: &str = "/home/otto/Videos/Clips/";
 
@@ -109,10 +107,7 @@ pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
                 return HttpResponse::Ok().body(create_post);
             } 
         }
-        else {
-            break;
-        }
-        current_count += 1
+        current_count += 1;
     }
 
     HttpResponse::InternalServerError().into()
