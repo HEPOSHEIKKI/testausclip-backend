@@ -28,9 +28,7 @@ Testausclip API gives 5 different routes:
 |/auth/register          |POST|        Register a user|
 |/auth/login             |POST|        Login as a user|
 |/auth/totp              |POST|        Verify login with TOTP|
-|/auth/totp/secret       |GET|         Generate new TOTP key and invalidate existing ones|
-|/auth/changeusername    |POST|        Change the user name|
-|/auth/changepassword    |POST|        Change the password|
+|/auth/totp/secret       |GET|         Generate new TOTP key and invalidate existing ones. TOTP will not be enabled before this secret has been used once. Secret will be invalidated if not used within 180 seconds of generation.|
 |/auth/regenerate        |POST|        Regenerate login token|
 |/auth/delete            |DELETE|      Permanently delete authenticated user account|
 
@@ -39,7 +37,7 @@ Testausclip API gives 5 different routes:
 ### <a name="user"></a> /user/
 | ROUTE | METHOD | ACTION |
 |---|---|---|
-|/user/me                |ANY|         Username me refers to the user making the request|
+|/user/me                |PATCH|       Modify profile information (passwords, display names etc) |
 |/user/`id`              |GET|         Retrieve user information|
 |/user/`id`/clips        |GET|         Retrieve clips owned by user|
 |/user/`id`/avatar       |GET|         Retrieve user avatar|
@@ -56,9 +54,7 @@ Testausclip API gives 5 different routes:
 ### <a name="search"></a> /search/
 | ROUTE | METHOD | ACTION |
 |---|---|---|
-|/search/game/`query`    |GET|         Search for games|
-|/search/clip/`query`    |GET|         Search for clips|
-|/search/user/`query`    |GET|         Search for user|
+|/search/?q=`query`   |GET|         Search for games, users or clips|
 
 
 ### <a name="game"></a> /game/
