@@ -2,7 +2,7 @@
 use std::path;
 
 use actix_files;
-use actix_web::{get, http::header::{ContentDisposition, DispositionType, CONTENT_LENGTH}, web::{self}, HttpRequest, HttpResponse};
+use actix_web::{get, http::header::{ContentDisposition, DispositionType, CONTENT_LENGTH}, post, web::{self}, HttpRequest, HttpResponse};
 use actix_multipart:: Multipart ;
 use futures_util::TryStreamExt as _;
 use mime::{Mime, APPLICATION_OCTET_STREAM};
@@ -13,7 +13,7 @@ use file_format::FileFormat;
 use crate::{database::posts::create_post, models::NewPost};
 use crate::database::CreatePost;
 
-#[get("/api/clip/get/{id}")]
+#[get("/v1/clip/get/{id}")]
 pub async fn get_clip(path: web::Path<String>) -> Result<actix_files::NamedFile, actix_web::Error> {
     let id: String = path.to_string();
     let file = actix_files::NamedFile::open(format!("/home/otto/Videos/Clips/{}.mp4", id))?;
@@ -25,7 +25,7 @@ pub async fn get_clip(path: web::Path<String>) -> Result<actix_files::NamedFile,
         }))
 }
 
-
+#[post("/v1/clip/upload")]
 pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
     let max_file_size: usize = 300_000_000;
     let max_file_count: usize = 1;
@@ -41,8 +41,6 @@ pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
         return HttpResponse::BadRequest().into();
     }
 
-    let mut new_uuid: String = String::new();
-
 
     let mut current_count: usize = 0;
     loop {
@@ -50,7 +48,6 @@ pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
 
         if let Ok(Some(mut field)) = payload.try_next().await {
             let filetype: Option<&Mime> = field.content_type();
-
 
             if field.name() != "upload"{
                 continue;
@@ -62,16 +59,9 @@ pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
             if !legal_filetypes.contains(&filetype.unwrap()) {
                 continue;
             }
-            let destination: String = format!(
-                "{}{}.mp4",
-                dir,
-                new_uuid
-            );
 
-            let mut saved_file: fs::File = fs::File::create(&destination).await.unwrap();
             let mut in_memory_data: Vec<u8> = Vec::new();
-
-            
+   
             while let Ok(Some(chunk)) = field.try_next().await {
                 in_memory_data.extend_from_slice(&chunk);
             }
@@ -105,22 +95,26 @@ pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
 
                 
                 let create_post = create_post(post).await;
-                new_uuid = create_post.clone();
+
+                let destination: String = format!(
+                    "{}{}.mp4",
+                    dir,
+                    create_post
+                );
+
+                let mut saved_file: fs::File = fs::File::create(&destination).await.unwrap();
+
                 println!("{}", create_post);
                 let _ = saved_file.write_all(&in_memory_data).await.unwrap();
-            }
-            
-
-            
-
+                return HttpResponse::Ok().body(create_post);
+            } 
         }
         else {
             break;
         }
-
         current_count += 1
     }
 
-    HttpResponse::Ok().body(new_uuid.to_string())
+    HttpResponse::InternalServerError().into()
 
 }
