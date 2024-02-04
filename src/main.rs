@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate diesel;
+extern crate dotenv;
 
 use serde_derive::{Serialize, Deserialize};
 use actix_web::{get, web, App, HttpServer, Responder};
@@ -6,6 +9,10 @@ mod api;
 use api::clip::get_clip;
 use api::clip::upload;
 
+mod database;
+
+mod schema;
+mod models;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct MyConfig {
@@ -23,7 +30,7 @@ async fn ping() -> impl Responder {
 
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> std::io::Result<()> {   
     HttpServer::new(|| {
         App::new()
             .service(ping)

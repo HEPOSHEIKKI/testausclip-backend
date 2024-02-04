@@ -1,4 +1,6 @@
 
+use std::path;
+
 use actix_files;
 use actix_web::{get, http::header::{ContentDisposition, DispositionType, CONTENT_LENGTH}, web::{self}, HttpRequest, HttpResponse};
 use actix_multipart:: Multipart ;
@@ -7,6 +9,9 @@ use mime::{Mime, APPLICATION_OCTET_STREAM};
 use uuid::Uuid;
 use tokio::{fs, io::AsyncWriteExt as _};
 use file_format::FileFormat;
+
+use crate::{database::posts::create_post, models::NewPost};
+use crate::database::CreatePost;
 
 #[get("/api/clip/get/{id}")]
 pub async fn get_clip(path: web::Path<String>) -> Result<actix_files::NamedFile, actix_web::Error> {
@@ -36,7 +41,8 @@ pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
         return HttpResponse::BadRequest().into();
     }
 
-    let new_uuid: Uuid = Uuid::new_v4();
+    let mut new_uuid: String = String::new();
+
 
     let mut current_count: usize = 0;
     loop {
@@ -75,9 +81,36 @@ pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
                 return HttpResponse::BadRequest().into();
             }
             else {
+                let mut post: CreatePost = CreatePost{
+                    title: String::new(),
+                    description: String::new()
+                };
+                if let Some(title) = req.headers().get("Title") {
+                    if let Ok(title_str) = title.to_str() {
+                        post.title = title_str.to_string();
+                    }
+                }
+                else {
+                    return HttpResponse::BadRequest().body("Missing required header: Title\n").into();
+                }
+
+                if let Some(description) = req.headers().get("Description") {
+                    if let Ok(description_str) = description.to_str() {
+                        post.description = description_str.to_string();
+                    }
+                }
+                else {
+                    return HttpResponse::BadRequest().body("Missing required header: Description\n").into();
+                }
+
+                
+                let create_post = create_post(post).await;
+                new_uuid = create_post.clone();
+                println!("{}", create_post);
                 let _ = saved_file.write_all(&in_memory_data).await.unwrap();
             }
             
+
             
 
         }
