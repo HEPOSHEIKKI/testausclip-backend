@@ -9,6 +9,7 @@ mod api;
 use api::clip::get_clip;
 use api::clip::upload_clip;
 use api::clip::remove_clip_file;
+use api::clip::get_metadata;
 
 mod database;
 
@@ -36,6 +37,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .service(ping)
             .service(get_clip)
+            .service(get_metadata)
             .service(upload_clip)
             .service(remove_clip_file)
     })

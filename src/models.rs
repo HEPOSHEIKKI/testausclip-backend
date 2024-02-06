@@ -1,5 +1,6 @@
 use crate::schema::clips;
 use chrono::naive::NaiveDateTime;
+use serde_derive::Serialize;
 
 #[derive(Insertable)]
 #[table_name = "clips"]
@@ -23,7 +24,7 @@ pub struct Clip {
     pub filename: Option<String>,
 }
 
-#[derive(Queryable, AsChangeset, Selectable)]
+#[derive(Queryable, AsChangeset, Selectable, Debug, Serialize)]
 #[table_name = "clips"]
 pub struct ClipMeta {
     pub id: String,

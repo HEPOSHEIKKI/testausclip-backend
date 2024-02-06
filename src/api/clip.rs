@@ -11,6 +11,7 @@ use file_format::FileFormat;
 use crate::database::{self, clips::{create_clip, remove_clip}};
 use crate::database::CreateClip;
 use crate::database::RemoveClip;
+use crate::database::clips::get_clip_meta;
 
 #[get("/v1/clip/get/{id}")]
 pub async fn get_clip(path: web::Path<String>) -> Result<actix_files::NamedFile, actix_web::Error> {
@@ -34,8 +35,10 @@ pub async fn get_clip(path: web::Path<String>) -> Result<actix_files::NamedFile,
 }
 
 #[get("/v1/clip/metadata/{id}")]
-pub async fn get_metadata(path: web::Path<String>) -> HttpResponse {
-    return HttpResponse::Ok().body("Alive")
+pub async fn get_metadata(clip: web::Path<String>) -> HttpResponse {
+    let response = get_clip_meta(clip.to_string()).await;
+    let response_struct = response.unwrap();
+    return HttpResponse::Ok().json(web::Json(response_struct))
 }
 
 #[delete("/v1/clip/remove/{id}")]

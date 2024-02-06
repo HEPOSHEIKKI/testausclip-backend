@@ -87,3 +87,26 @@ pub async fn get_clip_file(clip: String) -> Option<String>{
 
 
 }
+
+pub async fn get_clip_meta(clip: String) -> Option<ClipMeta> {
+    use crate::schema::clips::dsl::*;
+
+    let connection = &mut establish_connection();
+
+    let metadata = clips.find(clip)
+        .select(ClipMeta::as_select())
+        .first(connection)
+        .optional();
+
+    match metadata {
+        Ok(Some(clip)) => {
+            return Some(clip);
+        },
+        Ok(None) => {
+            return None;
+        },
+        Err(_) => {
+            return None;
+        }
+    }
+}
