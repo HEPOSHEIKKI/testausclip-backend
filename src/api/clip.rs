@@ -37,8 +37,14 @@ pub async fn get_clip(path: web::Path<String>) -> Result<actix_files::NamedFile,
 #[get("/v1/clip/metadata/{id}")]
 pub async fn get_metadata(clip: web::Path<String>) -> HttpResponse {
     let response = get_clip_meta(clip.to_string()).await;
-    let response_struct = response.unwrap();
-    return HttpResponse::Ok().json(web::Json(response_struct))
+    match response {
+        Some(metadata) => {
+            return HttpResponse::Ok().json(web::Json(metadata));
+        },
+        None => {
+            return HttpResponse::NotFound().json("not found");
+        }
+    }
 }
 
 #[delete("/v1/clip/remove/{id}")]
