@@ -9,7 +9,6 @@ use diesel::{prelude::*, query_dsl::methods::FilterDsl};
 use uuid::Uuid;
 use ulid::Ulid;
 
-use crate::models::Clip;
 
 
 pub async fn create_clip(clip: CreateClip) -> NewClip {
