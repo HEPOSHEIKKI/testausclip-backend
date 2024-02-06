@@ -68,16 +68,16 @@ pub async fn get_metadata(clip: web::Path<String>) -> HttpResponse {
                             return HttpResponse::Ok().json(format!("Removed clip {}", id))
                         }
                         Err(_) => {
-                            return HttpResponse::NotFound().body("No clip found with the associated id")
+                            return HttpResponse::NotFound().json("No clip found with the associated id")
                         }
                     }
                 }
                 else {
-                    return HttpResponse::NotFound().body("No clip found with the associated id") //We are using 404 to avoid checking if a private clip exists by attempting to remove it. By keeping the responses as vague as possible, we can prevent this.
+                    return HttpResponse::InternalServerError().json("Something went wrong")
                 }
             },
             None => {
-                return HttpResponse::InternalServerError().body("Something went wrong")
+                return HttpResponse::NotFound().json("No clip found with the associated id") //We are using 404 to avoid checking if a private clip exists by attempting to remove it. By keeping the responses as vague as possible, we can prevent this.
             }
         };
 
@@ -141,7 +141,7 @@ pub async fn upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpRespon
                     }
                 }
                 else {
-                    return HttpResponse::BadRequest().body("Missing required header: Title\n").into();
+                    return HttpResponse::BadRequest().json("Missing required header: Title").into();
                 }
 
                 if let Some(description) = req.headers().get("Description") {
@@ -150,7 +150,7 @@ pub async fn upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpRespon
                     }
                 }
                 else {
-                    return HttpResponse::BadRequest().body("Missing required header: Description\n").into();
+                    return HttpResponse::BadRequest().json("Missing required header: Description").into();
                 }
 
                 
@@ -166,7 +166,7 @@ pub async fn upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpRespon
 
                 println!("{}", create_post.filename);
                 let _ = saved_file.write_all(&in_memory_data).await.unwrap();
-                return HttpResponse::Ok().body(create_post.id.clone());
+                return HttpResponse::Ok().json(create_post.id.clone());
             } 
         }
         current_count += 1;
