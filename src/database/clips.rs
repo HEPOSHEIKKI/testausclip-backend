@@ -2,6 +2,8 @@
 
 
 use crate::models::NewClip;
+use crate::models::ClipMeta;
+use crate::models::ClipFile;
 use super::{establish_connection, CreateClip, RemoveClip};
 use diesel::{prelude::*, query_dsl::methods::FilterDsl};
 use uuid::Uuid;
@@ -59,20 +61,21 @@ pub async fn remove_clip(clip: RemoveClip) -> Result<String, ()>{
     }
 }
 
+
+//TODO: Truncate all clip querys to to a single function. Otherwise models.rs is somewhat useless. 
 pub async fn get_clip_file(clip: String) -> Option<String>{
     use crate::schema::clips::dsl::*;
-    // HOW THE FUCK DO I GET SHIT
     let connection = &mut establish_connection();
 
     let post = clips.find(clip)
-        .select(Clip::as_select())
+        .select(ClipFile::as_select())
         .first(connection)
         .optional();
 
     match post {
     Ok(Some(clip)) => {
-        let kys = clip.filename;
-        return kys;
+        let name = clip.filename;
+        return name;
     },
     Ok(None) => {
         return None

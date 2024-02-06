@@ -33,6 +33,11 @@ pub async fn get_clip(path: web::Path<String>) -> Result<actix_files::NamedFile,
     }
 }
 
+#[get("/v1/clip/metadata/{id}")]
+pub async fn get_metadata(path: web::Path<String>) -> HttpResponse {
+    return HttpResponse::Ok().body("Alive")
+}
+
 #[delete("/v1/clip/remove/{id}")]
     pub async fn remove_clip_file(path: web::Path<String>) -> HttpResponse {
         let id: String = path.to_string();

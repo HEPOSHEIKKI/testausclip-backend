@@ -22,3 +22,22 @@ pub struct Clip {
     pub uploaddate: Option<NaiveDateTime>,
     pub filename: Option<String>,
 }
+
+#[derive(Queryable, AsChangeset, Selectable)]
+#[table_name = "clips"]
+pub struct ClipMeta {
+    pub id: String,
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub ownerid: Option<String>,
+    pub private: Option<bool>,
+    pub game: Option<String>,
+    pub uploaddate: Option<NaiveDateTime>
+
+}
+
+#[derive(Queryable, AsChangeset, Selectable)]
+#[table_name = "clips"]
+pub struct ClipFile {
+    pub filename: Option<String>,
+}
