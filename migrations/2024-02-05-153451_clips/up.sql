@@ -1,0 +1,10 @@
+CREATE TABLE Clips (
+    ID TEXT PRIMARY KEY,
+    Title VARCHAR(100),
+    Description TEXT,
+    Private BOOL DEFAULT FALSE,
+    OwnerID VARCHAR(255) REFERENCES Users(UserID),
+    Game TEXT,
+    UploadDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FileName VARCHAR(255)
+)

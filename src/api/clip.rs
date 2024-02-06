@@ -1,30 +1,79 @@
 
 
 use actix_files;
-use actix_web::{get, http::header::{ContentDisposition, DispositionType, CONTENT_LENGTH}, post, web::{self}, HttpRequest, HttpResponse};
+use actix_web::{delete, get, http::header::{ContentDisposition, DispositionType, CONTENT_LENGTH}, post, web, HttpRequest, HttpResponse};
 use actix_multipart:: Multipart ;
 use futures_util::TryStreamExt as _;
 use mime::{Mime, APPLICATION_OCTET_STREAM};
 use tokio::{fs, io::AsyncWriteExt as _};
 use file_format::FileFormat;
 
-use crate::database::posts::create_post;
-use crate::database::CreatePost;
+use crate::database::{self, clips::{create_clip, remove_clip}};
+use crate::database::CreateClip;
+use crate::database::RemoveClip;
 
 #[get("/v1/clip/get/{id}")]
 pub async fn get_clip(path: web::Path<String>) -> Result<actix_files::NamedFile, actix_web::Error> {
     let id: String = path.to_string();
-    let file = actix_files::NamedFile::open(format!("/home/otto/Videos/Clips/{}.mp4", id))?;
-    Ok(file
-        .use_last_modified(true)
-        .set_content_disposition(ContentDisposition {
-            disposition: DispositionType::Attachment,
-            parameters: vec![],
-        }))
+    let file_id = database::clips::get_clip_file(id.clone()).await;
+
+    match file_id {
+        Some(filename) => {
+            let file = actix_files::NamedFile::open(format!("/home/otto/Videos/Clips/{}", filename))?;
+            return Ok(file
+                .use_last_modified(true)
+                .set_content_disposition(ContentDisposition {
+                    disposition: DispositionType::Attachment,
+                    parameters: vec![],
+                }));
+        },
+        None => {
+            return Err(actix_web::error::ErrorNotFound(format!("No such clip with ID {}", id)));
+        }
+    }
 }
 
+#[delete("/v1/clip/remove/{id}")]
+    pub async fn remove_clip_file(path: web::Path<String>) -> HttpResponse {
+        let id: String = path.to_string();
+
+        let file_id = database::clips::get_clip_file(id.clone()).await;
+
+        match file_id {
+            Some(filename) => {
+                let path = format!("/home/otto/Videos/Clips/{}", filename);
+
+                let clip = RemoveClip{
+                    id: id.clone()
+                };
+
+                let removed_post = remove_clip(clip).await;
+                if removed_post.is_ok() {
+                    match fs::remove_file(path).await {
+                        Ok(_) => {
+                            return HttpResponse::Ok().json(format!("Removed clip {}", id))
+                        }
+                        Err(_) => {
+                            return HttpResponse::NotFound().body("No clip found with the associated id")
+                        }
+                    }
+                }
+                else {
+                    return HttpResponse::NotFound().body("No clip found with the associated id") //We are using 404 to avoid checking if a private clip exists by attempting to remove it. By keeping the responses as vague as possible, we can prevent this.
+                }
+            },
+            None => {
+                return HttpResponse::InternalServerError().body("Something went wrong")
+            }
+        };
+
+
+        
+    }
+
+
 #[post("/v1/clip/upload")]
-pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
+pub async fn upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
     let max_file_size: usize = 300_000_000;
     let max_file_count: usize = 2;
     let legal_filetypes: [Mime; 1] = [APPLICATION_OCTET_STREAM];
@@ -38,7 +87,6 @@ pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
     if content_length == 0 || content_length > max_file_size {
         return HttpResponse::BadRequest().into();
     }
-
 
     let mut current_count: usize = 0;
     loop {
@@ -69,7 +117,7 @@ pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
                 return HttpResponse::BadRequest().into();
             }
             else {
-                let mut post: CreatePost = CreatePost{
+                let mut post: CreateClip = CreateClip{
                     title: String::new(),
                     description: String::new()
                 };
@@ -92,19 +140,19 @@ pub async fn upload(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
                 }
 
                 
-                let create_post = create_post(post).await;
+                let create_post = create_clip(post).await;
 
                 let destination: String = format!(
-                    "{}{}.mp4",
+                    "{}{}",
                     dir,
-                    create_post
+                    create_post.filename
                 );
 
                 let mut saved_file: fs::File = fs::File::create(&destination).await.unwrap();
 
-                println!("{}", create_post);
+                println!("{}", create_post.filename);
                 let _ = saved_file.write_all(&in_memory_data).await.unwrap();
-                return HttpResponse::Ok().body(create_post);
+                return HttpResponse::Ok().body(create_post.id.clone());
             } 
         }
         current_count += 1;

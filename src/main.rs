@@ -7,7 +7,8 @@ use actix_web::{get, App, HttpServer, Responder};
 
 mod api;
 use api::clip::get_clip;
-use api::clip::upload;
+use api::clip::upload_clip;
+use api::clip::remove_clip_file;
 
 mod database;
 
@@ -35,7 +36,8 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .service(ping)
             .service(get_clip)
-            .service(upload)
+            .service(upload_clip)
+            .service(remove_clip_file)
     })
         .bind("127.0.0.1:8080")?
         .run()

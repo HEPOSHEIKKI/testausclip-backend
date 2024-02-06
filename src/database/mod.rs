@@ -1,13 +1,17 @@
-pub mod posts;
+pub mod clips;
 
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use dotenv::dotenv;
 use std::env;
 
-pub struct CreatePost {
+pub struct CreateClip {
     pub title: String,
     pub description: String,
+}
+
+pub struct RemoveClip {
+    pub id: String,
 }
 
 
