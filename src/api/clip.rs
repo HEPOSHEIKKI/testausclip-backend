@@ -88,6 +88,11 @@ pub async fn get_metadata(id: web::Path<String>) -> HttpResponse {
     }
 
 
+
+// I would use JSON here to specify the metadata, but HTTP doesn't allow for multipart data to be sent alongside JSON data. I think using headers for this is fine, we're not building rockets here!
+// Alternatives I've considered: Saving the clip without any metadata and sending back the ID. The user then has to set the metadata of the clip with /clip/update before the clip can be publicly accessed.
+
+
 #[post("/v1/clip/upload")]
 pub async fn upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
     let max_file_size: usize = 300_000_000;
@@ -110,11 +115,11 @@ pub async fn upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpRespon
 
         if let Ok(Some(mut field)) = payload.try_next().await {
             let filetype: Option<&Mime> = field.content_type();
-
+  
             if field.name() != "upload"{
                 continue;
             }
-  
+
             if filetype.is_none() {
                 continue;
             }
@@ -133,15 +138,20 @@ pub async fn upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpRespon
                 return HttpResponse::BadRequest().into();
             }
             else {
-                let mut post: CreateClip = CreateClip{
+                let mut post: CreateClip = CreateClip {
                     title: String::new(),
                     description: String::new()
                 };
+
+
                 if let Some(title) = req.headers().get("Title") {
                     if let Ok(title_str) = title.to_str() {
                         post.title = title_str.to_string();
                     }
                 }
+
+                
+
                 else {
                     return HttpResponse::BadRequest().json("Missing required header: Title").into();
                 }
