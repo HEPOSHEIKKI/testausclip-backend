@@ -6,14 +6,14 @@ use serde_derive::{Serialize, Deserialize};
 use actix_web::{get, App, HttpServer, Responder};
 
 mod api;
-use api::clip::get_clip;
-use api::clip::upload_clip;
-use api::clip::remove_clip_file;
-use api::clip::get_metadata;
-use api::clip::update_clip;
+use api::clip::api_get_clip;
+use api::clip::api_upload_clip;
+use api::clip::api_remove_clip;
+use api::clip::api_get_metadata;
+use api::clip::api_update_clip;
 
 mod database;
-
+mod storage;
 mod schema;
 mod models;
 
@@ -37,11 +37,11 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
             .service(ping)
-            .service(get_clip)
-            .service(get_metadata)
-            .service(upload_clip)
-            .service(remove_clip_file)
-            .service(update_clip)
+            .service(api_get_clip)
+            .service(api_get_metadata)
+            .service(api_upload_clip)
+            .service(api_remove_clip)
+            .service(api_update_clip)
 
     })
         .bind("127.0.0.1:8080")?

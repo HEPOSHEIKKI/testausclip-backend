@@ -12,7 +12,7 @@ use ulid::Ulid;
 
 
 
-pub async fn create_clip(clip: CreateClip) -> NewClip {
+pub async fn db_create_clip(clip: CreateClip) -> NewClip {
     use crate::schema::clips::dsl::*;
 
     let connection = &mut establish_connection();
@@ -37,11 +37,11 @@ pub async fn create_clip(clip: CreateClip) -> NewClip {
     new_clip
 }
 
-pub async fn remove_clip(clip: RemoveClip) -> Result<String, ()>{
+pub async fn db_remove_clip(clip: RemoveClip) -> Result<String, ()>{
     use crate::schema::clips::dsl::*;
     let connection = &mut establish_connection();
     let uid = clip.id;
-    let get_file_name = get_clip_file(uid.clone()).await;
+    let get_file_name = db_get_clip_file(uid.clone()).await;
 
     match get_file_name {
         Some(file_name) => {
@@ -62,7 +62,7 @@ pub async fn remove_clip(clip: RemoveClip) -> Result<String, ()>{
 }
 
 
-pub async fn get_clip_file(clip_id: String) -> Option<String>{
+pub async fn db_get_clip_file(clip_id: String) -> Option<String>{
     use crate::schema::clips::dsl::*;
     let connection = &mut establish_connection();
 
@@ -87,7 +87,7 @@ pub async fn get_clip_file(clip_id: String) -> Option<String>{
 
 }
 
-pub async fn get_clip_meta(clip_id: String) -> Option<ClipMeta> {
+pub async fn db_get_clip_meta(clip_id: String) -> Option<ClipMeta> {
     use crate::schema::clips::dsl::*;
 
     let connection = &mut establish_connection();
@@ -110,7 +110,7 @@ pub async fn get_clip_meta(clip_id: String) -> Option<ClipMeta> {
     }
 }
 
-pub async fn update_clip_meta(clip: UpdateClip, clip_id: String) -> Result<(), ()> {
+pub async fn db_update_clip_meta(clip: UpdateClip, clip_id: String) -> Result<(), ()> {
     use crate::schema::clips::dsl::*;
 
     let connection = &mut establish_connection();

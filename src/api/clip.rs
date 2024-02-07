@@ -5,21 +5,23 @@ use actix_web::{delete, error, get, http::header::{ContentDisposition, Dispositi
 use actix_multipart:: Multipart ;
 use futures_util::{StreamExt, TryStreamExt as _};
 use mime::{Mime, APPLICATION_OCTET_STREAM};
-use tokio::{fs, io::AsyncWriteExt as _};
 use file_format::FileFormat;
 
-use crate::{database::{self, clips::{create_clip, remove_clip}}, models::UpdateClip};
+
+use crate::storage::clips::write_clip_to_file;
+use crate::storage::clips::remove_clip_file;
+use crate::{database::{self, clips::{db_create_clip, db_remove_clip}}, models::UpdateClip};
 use crate::database::CreateClip;
 use crate::database::RemoveClip;
-use crate::database::clips::update_clip_meta;
-use crate::database::clips::get_clip_meta;
+use crate::database::clips::db_update_clip_meta;
+use crate::database::clips::db_get_clip_meta;
 
 //TODO Use JSON instead of headers
 
 
 #[get("/v1/clip/get/{id}")]
-pub async fn get_clip(id: web::Path<String>) -> Result<actix_files::NamedFile, actix_web::Error> {
-    let file_id = database::clips::get_clip_file(id.clone()).await;
+pub async fn api_get_clip(id: web::Path<String>) -> Result<actix_files::NamedFile, actix_web::Error> {
+    let file_id = database::clips::db_get_clip_file(id.clone()).await;
 
     match file_id {
         Some(filename) => {
@@ -38,8 +40,8 @@ pub async fn get_clip(id: web::Path<String>) -> Result<actix_files::NamedFile, a
 }
 
 #[get("/v1/clip/metadata/{id}")]
-pub async fn get_metadata(id: web::Path<String>) -> HttpResponse {
-    let response = get_clip_meta(id.to_string()).await;
+pub async fn api_get_metadata(id: web::Path<String>) -> HttpResponse {
+    let response = db_get_clip_meta(id.to_string()).await;
     match response {
         Some(metadata) => {
             return HttpResponse::Ok().json(web::Json(metadata));
@@ -51,21 +53,20 @@ pub async fn get_metadata(id: web::Path<String>) -> HttpResponse {
 }
 
 #[delete("/v1/clip/remove/{id}")]
-    pub async fn remove_clip_file(id: web::Path<String>) -> HttpResponse {
+    pub async fn api_remove_clip(id: web::Path<String>) -> HttpResponse {
 
-        let file_id = database::clips::get_clip_file(id.clone()).await;
+        let file_id = database::clips::db_get_clip_file(id.clone()).await;
 
         match file_id {
             Some(filename) => {
-                let path = format!("/home/otto/Videos/Clips/{}", filename);
 
                 let clip = RemoveClip{
                     id: id.clone()
                 };
 
-                let removed_post = remove_clip(clip).await;
+                let removed_post = db_remove_clip(clip).await;
                 if removed_post.is_ok() {
-                    match fs::remove_file(path).await {
+                    match remove_clip_file(filename).await {
                         Ok(_) => {
                             return HttpResponse::Ok().json(format!("Removed clip {}", id))
                         }
@@ -94,11 +95,10 @@ pub async fn get_metadata(id: web::Path<String>) -> HttpResponse {
 
 
 #[post("/v1/clip/upload")]
-pub async fn upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
+pub async fn api_upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
     let max_file_size: usize = 300_000_000;
     let max_file_count: usize = 2;
     let legal_filetypes: [Mime; 1] = [APPLICATION_OCTET_STREAM];
-    let dir: &str = "/home/otto/Videos/Clips/";
 
     let content_length: usize = match req.headers().get(CONTENT_LENGTH) {
         Some(header_value) => header_value.to_str().unwrap_or("0").parse().unwrap(),
@@ -166,18 +166,9 @@ pub async fn upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpRespon
                 }
 
                 
-                let create_post = create_clip(post).await;
+                let create_post = db_create_clip(post).await;
 
-                let destination: String = format!(
-                    "{}{}",
-                    dir,
-                    create_post.filename
-                );
-
-                let mut saved_file: fs::File = fs::File::create(&destination).await.unwrap();
-
-                println!("{}", create_post.filename);
-                let _ = saved_file.write_all(&in_memory_data).await.unwrap();
+                write_clip_to_file(create_post.filename, &in_memory_data).await;
                 return HttpResponse::Ok().json(create_post.id.clone());
             } 
         }
@@ -190,7 +181,7 @@ pub async fn upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpRespon
 
 
 #[put("/v1/clip/update/{id}")]
-pub async fn update_clip(id: web::Path<String>, mut payload: web::Payload) -> Result<HttpResponse, actix_web::Error> {
+pub async fn api_update_clip(id: web::Path<String>, mut payload: web::Payload) -> Result<HttpResponse, actix_web::Error> {
     const MAX_SIZE: usize = 262_144_000;
     let mut body = web::BytesMut::new();
     while let Some(chunk) = payload.next().await {
@@ -205,7 +196,7 @@ pub async fn update_clip(id: web::Path<String>, mut payload: web::Payload) -> Re
         return Err(error::ErrorBadRequest("missing required content"));
     }
     let update_data = serde_json::from_slice::<UpdateClip>(&body)?;
-    let update = update_clip_meta(update_data, id.to_string()).await;
+    let update = db_update_clip_meta(update_data, id.to_string()).await;
     match update {
         Ok(()) => Ok(HttpResponse::Ok().into()),
         Err(_) => Err(error::ErrorBadRequest("malformed request body")),
