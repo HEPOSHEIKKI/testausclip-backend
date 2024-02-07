@@ -1,5 +1,5 @@
 CREATE TABLE Clips (
-    ID TEXT PRIMARY KEY,
+    ID VARCHAR(255) PRIMARY KEY,
     Title VARCHAR(100),
     Description TEXT,
     Private BOOL DEFAULT FALSE,
