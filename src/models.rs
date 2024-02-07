@@ -1,15 +1,15 @@
 use crate::schema::clips;
 use crate::schema::likes;
 use chrono::naive::NaiveDateTime;
-use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Deserialize, Serialize};
 
 #[derive(Insertable)]
 #[diesel(table_name = clips)]
-pub struct NewClip<>{
+pub struct NewClip {
     pub id: String,
     pub title: String,
     pub description: String,
-    pub filename: String
+    pub filename: String,
 }
 
 #[derive(Debug, Queryable, AsChangeset, Selectable)]
@@ -34,8 +34,7 @@ pub struct ClipMeta {
     pub ownerid: Option<String>,
     pub private: Option<bool>,
     pub game: Option<String>,
-    pub uploaddate: Option<NaiveDateTime>
-
+    pub uploaddate: Option<NaiveDateTime>,
 }
 
 #[derive(Queryable, AsChangeset, Selectable)]

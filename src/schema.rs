@@ -44,8 +44,4 @@ diesel::joinable!(clips -> users (ownerid));
 diesel::joinable!(likes -> clips (clipid));
 diesel::joinable!(likes -> users (userid));
 
-diesel::allow_tables_to_appear_in_same_query!(
-    clips,
-    likes,
-    users,
-);
+diesel::allow_tables_to_appear_in_same_query!(clips, likes, users,);
