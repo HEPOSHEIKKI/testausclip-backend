@@ -2,7 +2,8 @@
 
 diesel::table! {
     clips (id) {
-        id -> Text,
+        #[max_length = 255]
+        id -> Varchar,
         #[max_length = 100]
         title -> Nullable<Varchar>,
         description -> Nullable<Text>,
