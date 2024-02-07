@@ -14,6 +14,9 @@ use crate::database::RemoveClip;
 use crate::database::clips::update_clip_meta;
 use crate::database::clips::get_clip_meta;
 
+//TODO Use JSON instead of headers
+
+
 #[get("/v1/clip/get/{id}")]
 pub async fn get_clip(path: web::Path<String>) -> Result<actix_files::NamedFile, actix_web::Error> {
     let id: String = path.to_string();
