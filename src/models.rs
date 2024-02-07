@@ -4,7 +4,7 @@ use chrono::naive::NaiveDateTime;
 use serde_derive::{Serialize, Deserialize};
 
 #[derive(Insertable)]
-#[table_name = "clips"]
+#[diesel(table_name = clips)]
 pub struct NewClip<>{
     pub id: String,
     pub title: String,
@@ -13,7 +13,7 @@ pub struct NewClip<>{
 }
 
 #[derive(Debug, Queryable, AsChangeset, Selectable)]
-#[table_name = "clips"]
+#[diesel(table_name = clips)]
 pub struct Clip {
     pub id: String,
     pub title: Option<String>,
@@ -26,7 +26,7 @@ pub struct Clip {
 }
 
 #[derive(Queryable, AsChangeset, Selectable, Debug, Serialize)]
-#[table_name = "clips"]
+#[diesel(table_name = clips)]
 pub struct ClipMeta {
     pub id: String,
     pub title: Option<String>,
@@ -39,13 +39,13 @@ pub struct ClipMeta {
 }
 
 #[derive(Queryable, AsChangeset, Selectable)]
-#[table_name = "clips"]
+#[diesel(table_name = clips)]
 pub struct ClipFile {
     pub filename: Option<String>,
 }
 
 #[derive(AsChangeset, Serialize, Deserialize, Debug)]
-#[table_name = "clips"]
+#[diesel(table_name = clips)]
 pub struct UpdateClip {
     pub title: String,
     pub description: String,
@@ -54,7 +54,7 @@ pub struct UpdateClip {
 }
 
 #[derive(Insertable, Queryable, Debug)]
-#[table_name = "likes"]
+#[diesel(table_name = likes)]
 pub struct Like {
     pub clipid: String,
     pub userid: String,
