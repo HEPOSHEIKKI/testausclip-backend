@@ -18,6 +18,15 @@ diesel::table! {
 }
 
 diesel::table! {
+    likes (userid, clipid) {
+        #[max_length = 255]
+        userid -> Varchar,
+        #[max_length = 255]
+        clipid -> Varchar,
+    }
+}
+
+diesel::table! {
     users (userid) {
         #[max_length = 255]
         userid -> Varchar,
@@ -32,8 +41,11 @@ diesel::table! {
 }
 
 diesel::joinable!(clips -> users (ownerid));
+diesel::joinable!(likes -> clips (clipid));
+diesel::joinable!(likes -> users (userid));
 
 diesel::allow_tables_to_appear_in_same_query!(
     clips,
+    likes,
     users,
 );
