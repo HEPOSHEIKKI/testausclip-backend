@@ -10,6 +10,7 @@ use api::clip::get_clip;
 use api::clip::upload_clip;
 use api::clip::remove_clip_file;
 use api::clip::get_metadata;
+use api::clip::update_clip;
 
 mod database;
 
@@ -40,6 +41,8 @@ async fn main() -> std::io::Result<()> {
             .service(get_metadata)
             .service(upload_clip)
             .service(remove_clip_file)
+            .service(update_clip)
+
     })
         .bind("127.0.0.1:8080")?
         .run()

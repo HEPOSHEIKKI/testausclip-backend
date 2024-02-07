@@ -1,6 +1,6 @@
 use crate::schema::clips;
 use chrono::naive::NaiveDateTime;
-use serde_derive::Serialize;
+use serde_derive::{Serialize, Deserialize};
 
 #[derive(Insertable)]
 #[table_name = "clips"]
@@ -41,4 +41,13 @@ pub struct ClipMeta {
 #[table_name = "clips"]
 pub struct ClipFile {
     pub filename: Option<String>,
+}
+
+#[derive(AsChangeset, Serialize, Deserialize, Debug)]
+#[table_name = "clips"]
+pub struct UpdateClip {
+    pub title: String,
+    pub description: String,
+    pub private: Option<bool>,
+    pub game: Option<String>,
 }

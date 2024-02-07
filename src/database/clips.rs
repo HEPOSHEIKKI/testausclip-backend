@@ -4,6 +4,7 @@
 use crate::models::NewClip;
 use crate::models::ClipMeta;
 use crate::models::ClipFile;
+use crate::models::UpdateClip;
 use super::{establish_connection, CreateClip, RemoveClip};
 use diesel::{prelude::*, query_dsl::methods::FilterDsl};
 use uuid::Uuid;
@@ -61,7 +62,6 @@ pub async fn remove_clip(clip: RemoveClip) -> Result<String, ()>{
 }
 
 
-//TODO: Truncate all clip querys to to a single function. Otherwise models.rs is somewhat useless. 
 pub async fn get_clip_file(clip: String) -> Option<String>{
     use crate::schema::clips::dsl::*;
     let connection = &mut establish_connection();
@@ -108,4 +108,26 @@ pub async fn get_clip_meta(clip: String) -> Option<ClipMeta> {
             return None;
         }
     }
+}
+
+pub async fn update_clip_meta(clip: UpdateClip, clip_id: String) -> Result<(), ()> {
+    use crate::schema::clips::dsl::*;
+
+    let connection = &mut establish_connection();
+    let db_clip = UpdateClip {
+        title: clip.title,
+        description: clip.description,
+        private: clip.private,
+        game: clip.game
+    };
+    let update = diesel::update(clips.find(clip_id))
+            .set(&db_clip)
+            .execute(connection)
+            .expect("Error updating clip");
+
+    if update != 1 {
+        return Err(());
+    }
+
+    Ok(())
 }

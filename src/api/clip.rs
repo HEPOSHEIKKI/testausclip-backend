@@ -1,16 +1,17 @@
 
 
 use actix_files;
-use actix_web::{delete, get, http::header::{ContentDisposition, DispositionType, CONTENT_LENGTH}, post, web, HttpRequest, HttpResponse};
+use actix_web::{delete, error, get, http::header::{ContentDisposition, DispositionType, CONTENT_LENGTH}, post, web, put, HttpRequest, HttpResponse};
 use actix_multipart:: Multipart ;
-use futures_util::TryStreamExt as _;
+use futures_util::{StreamExt, TryStreamExt as _};
 use mime::{Mime, APPLICATION_OCTET_STREAM};
 use tokio::{fs, io::AsyncWriteExt as _};
 use file_format::FileFormat;
 
-use crate::database::{self, clips::{create_clip, remove_clip}};
+use crate::{database::{self, clips::{create_clip, remove_clip}}, models::UpdateClip};
 use crate::database::CreateClip;
 use crate::database::RemoveClip;
+use crate::database::clips::update_clip_meta;
 use crate::database::clips::get_clip_meta;
 
 #[get("/v1/clip/get/{id}")]
@@ -174,4 +175,28 @@ pub async fn upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpRespon
 
     HttpResponse::InternalServerError().into()
 
+}
+
+
+#[put("/v1/clip/update/{id}")]
+pub async fn update_clip(path: web::Path<String>, mut payload: web::Payload) -> Result<HttpResponse, actix_web::Error> {
+    const MAX_SIZE: usize = 262_144_000;
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            dbg!( body.len() + chunk.len());
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+    if body.len() < 1 {
+        return Err(error::ErrorBadRequest("missing required content"));
+    }
+    let obj = serde_json::from_slice::<UpdateClip>(&body)?;
+    let update = update_clip_meta(obj, path.to_string()).await;
+    match update {
+        Ok(()) => Ok(HttpResponse::Ok().json("success")),
+        Err(_) => Err(error::ErrorBadRequest("malformed request body")),
+    }
 }
