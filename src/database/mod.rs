@@ -14,7 +14,6 @@ pub struct RemoveClip {
     pub id: String,
 }
 
-
 pub fn establish_connection() -> PgConnection {
     dotenv().ok();
 

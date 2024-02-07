@@ -1,14 +1,15 @@
 
 
 use actix_files;
-use actix_web::{delete, error, get, http::header::{ContentDisposition, DispositionType, CONTENT_LENGTH}, post, web, put, HttpRequest, HttpResponse};
+use actix_web::{delete, error, get, http::header::{ContentDisposition, DispositionType, CONTENT_LENGTH}, post, put, web, HttpRequest, HttpResponse};
 use actix_multipart:: Multipart ;
 use futures_util::{StreamExt, TryStreamExt as _};
 use mime::{Mime, APPLICATION_OCTET_STREAM};
 use file_format::FileFormat;
 
 
-use crate::storage::clips::write_clip_to_file;
+use crate::{database::clips::db_add_like, models::Like, storage::clips::write_clip_to_file};
+use crate::database::clips::db_remove_like;
 use crate::storage::clips::remove_clip_file;
 use crate::{database::{self, clips::{db_create_clip, db_remove_clip}}, models::UpdateClip};
 use crate::database::CreateClip;
@@ -200,5 +201,45 @@ pub async fn api_update_clip(id: web::Path<String>, mut payload: web::Payload) -
     match update {
         Ok(()) => Ok(HttpResponse::Ok().into()),
         Err(_) => Err(error::ErrorBadRequest("malformed request body")),
+    }
+}
+
+#[post("/v1/clip/like/{id}")]
+pub async fn api_add_like(id: web::Path<String>, req: HttpRequest) -> HttpResponse {
+    let auth = req.headers().get("Authorization").cloned();
+    match auth {
+        Some(user_id) => {
+            let like: Like = Like {
+                clipid: id.to_string(),
+                userid: user_id.to_str().unwrap().to_string()
+            };
+            let add_like = db_add_like(like).await;
+            match add_like {
+                Ok(0) => return HttpResponse::Ok().into(),
+                Ok(1) => return HttpResponse::Ok().json("already liked"),
+                Ok(_) => return HttpResponse::InternalServerError().into(),
+                Err(_) => return HttpResponse::InternalServerError().into()
+            }
+        },
+        None => return HttpResponse::Unauthorized().json("Missing required header: Authorization")
+    }
+}
+
+#[delete("/v1/clip/like/{id}")]
+pub async fn api_remove_like(id: web::Path<String>, req: HttpRequest) -> HttpResponse {
+    let auth = req.headers().get("Authorization").cloned(); // NOT VALID AUTHORIZATION, THIS IS FOR TESTING PURPOSES
+    match auth {
+        Some(user_id) => {
+            let like: Like = Like {
+                clipid: id.to_string(),
+                userid: user_id.to_str().unwrap().to_string()
+            };
+            let add_like = db_remove_like(like).await;
+            match add_like {
+                Ok(_) => return HttpResponse::Ok().into(),
+                Err(_) => return HttpResponse::InternalServerError().into()
+            };
+        },
+        None => return HttpResponse::Unauthorized().json("Missing required header: Authorization")
     }
 }

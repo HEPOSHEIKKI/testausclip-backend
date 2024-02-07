@@ -1,4 +1,5 @@
 use crate::schema::clips;
+use crate::schema::likes;
 use chrono::naive::NaiveDateTime;
 use serde_derive::{Serialize, Deserialize};
 
@@ -50,4 +51,11 @@ pub struct UpdateClip {
     pub description: String,
     pub private: Option<bool>,
     pub game: Option<String>,
+}
+
+#[derive(Insertable, Queryable, Debug)]
+#[table_name = "likes"]
+pub struct Like {
+    pub clipid: String,
+    pub userid: String,
 }

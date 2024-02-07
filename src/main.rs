@@ -11,6 +11,8 @@ use api::clip::api_upload_clip;
 use api::clip::api_remove_clip;
 use api::clip::api_get_metadata;
 use api::clip::api_update_clip;
+use api::clip::api_add_like;
+use api::clip::api_remove_like;
 
 mod database;
 mod storage;
@@ -42,6 +44,8 @@ async fn main() -> std::io::Result<()> {
             .service(api_upload_clip)
             .service(api_remove_clip)
             .service(api_update_clip)
+            .service(api_add_like)
+            .service(api_remove_like)
 
     })
         .bind("127.0.0.1:8080")?

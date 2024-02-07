@@ -1,11 +1,14 @@
 //use std::{fmt::Error, io::Error};
 
 
+use crate::models::Like;
 use crate::models::NewClip;
 use crate::models::ClipMeta;
 use crate::models::ClipFile;
 use crate::models::UpdateClip;
 use super::{establish_connection, CreateClip, RemoveClip};
+use diesel::result::DatabaseErrorKind;
+
 use diesel::{prelude::*, query_dsl::methods::FilterDsl};
 use uuid::Uuid;
 use ulid::Ulid;
@@ -130,4 +133,43 @@ pub async fn db_update_clip_meta(clip: UpdateClip, clip_id: String) -> Result<()
     }
 
     Ok(())
+}
+
+pub async fn db_add_like(like: Like) -> Result<u32, ()> {
+    
+    use crate::schema::likes::dsl::*;
+
+    let connection = &mut establish_connection();
+
+    let add_like = diesel::insert_into(likes)
+        .values(&like)
+        .execute(connection)
+        .optional();
+    match add_like {
+        Ok(Some(_)) => return Ok(0),
+        Ok(None) => return Ok(0),
+        Err(e) => {
+            match e {
+                diesel::result::Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _) => {
+                    return Ok(1);
+                }
+                _ => return Err(()),
+            }
+        }
+    };
+}
+
+pub async fn db_remove_like(like: Like) -> Result<(), ()> {
+    
+    use crate::schema::likes::dsl::*;
+
+    let connection = &mut establish_connection();
+
+    let remove_like = diesel::delete(FilterDsl::filter(likes, clipid.eq(like.clipid).and(userid.eq(like.userid))))
+        .execute(connection)
+        .expect("Could not remove like");
+    if remove_like != 1 {
+        return Err(());
+    }
+    return Ok(());
 }
