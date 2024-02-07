@@ -62,18 +62,18 @@ pub async fn remove_clip(clip: RemoveClip) -> Result<String, ()>{
 }
 
 
-pub async fn get_clip_file(clip: String) -> Option<String>{
+pub async fn get_clip_file(clip_id: String) -> Option<String>{
     use crate::schema::clips::dsl::*;
     let connection = &mut establish_connection();
 
-    let post = clips.find(clip)
+    let post = clips.find(clip_id)
         .select(ClipFile::as_select())
         .first(connection)
         .optional();
 
     match post {
-    Ok(Some(clip)) => {
-        let name = clip.filename;
+    Ok(Some(clip_id)) => {
+        let name = clip_id.filename;
         return name;
     },
     Ok(None) => {
@@ -87,19 +87,19 @@ pub async fn get_clip_file(clip: String) -> Option<String>{
 
 }
 
-pub async fn get_clip_meta(clip: String) -> Option<ClipMeta> {
+pub async fn get_clip_meta(clip_id: String) -> Option<ClipMeta> {
     use crate::schema::clips::dsl::*;
 
     let connection = &mut establish_connection();
 
-    let metadata = clips.find(clip)
+    let metadata = clips.find(clip_id)
         .select(ClipMeta::as_select())
         .first(connection)
         .optional();
 
     match metadata {
-        Ok(Some(clip)) => {
-            return Some(clip);
+        Ok(Some(clip_id)) => {
+            return Some(clip_id);
         },
         Ok(None) => {
             return None;
@@ -114,14 +114,14 @@ pub async fn update_clip_meta(clip: UpdateClip, clip_id: String) -> Result<(), (
     use crate::schema::clips::dsl::*;
 
     let connection = &mut establish_connection();
-    let db_clip = UpdateClip {
+    let retrieve_clip = UpdateClip {
         title: clip.title,
         description: clip.description,
         private: clip.private,
         game: clip.game
     };
     let update = diesel::update(clips.find(clip_id))
-            .set(&db_clip)
+            .set(&retrieve_clip)
             .execute(connection)
             .expect("Error updating clip");
 

@@ -18,8 +18,7 @@ use crate::database::clips::get_clip_meta;
 
 
 #[get("/v1/clip/get/{id}")]
-pub async fn get_clip(path: web::Path<String>) -> Result<actix_files::NamedFile, actix_web::Error> {
-    let id: String = path.to_string();
+pub async fn get_clip(id: web::Path<String>) -> Result<actix_files::NamedFile, actix_web::Error> {
     let file_id = database::clips::get_clip_file(id.clone()).await;
 
     match file_id {
@@ -39,8 +38,8 @@ pub async fn get_clip(path: web::Path<String>) -> Result<actix_files::NamedFile,
 }
 
 #[get("/v1/clip/metadata/{id}")]
-pub async fn get_metadata(clip: web::Path<String>) -> HttpResponse {
-    let response = get_clip_meta(clip.to_string()).await;
+pub async fn get_metadata(id: web::Path<String>) -> HttpResponse {
+    let response = get_clip_meta(id.to_string()).await;
     match response {
         Some(metadata) => {
             return HttpResponse::Ok().json(web::Json(metadata));
@@ -52,8 +51,7 @@ pub async fn get_metadata(clip: web::Path<String>) -> HttpResponse {
 }
 
 #[delete("/v1/clip/remove/{id}")]
-    pub async fn remove_clip_file(path: web::Path<String>) -> HttpResponse {
-        let id: String = path.to_string();
+    pub async fn remove_clip_file(id: web::Path<String>) -> HttpResponse {
 
         let file_id = database::clips::get_clip_file(id.clone()).await;
 
@@ -182,7 +180,7 @@ pub async fn upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpRespon
 
 
 #[put("/v1/clip/update/{id}")]
-pub async fn update_clip(path: web::Path<String>, mut payload: web::Payload) -> Result<HttpResponse, actix_web::Error> {
+pub async fn update_clip(id: web::Path<String>, mut payload: web::Payload) -> Result<HttpResponse, actix_web::Error> {
     const MAX_SIZE: usize = 262_144_000;
     let mut body = web::BytesMut::new();
     while let Some(chunk) = payload.next().await {
@@ -196,10 +194,10 @@ pub async fn update_clip(path: web::Path<String>, mut payload: web::Payload) -> 
     if body.len() < 1 {
         return Err(error::ErrorBadRequest("missing required content"));
     }
-    let obj = serde_json::from_slice::<UpdateClip>(&body)?;
-    let update = update_clip_meta(obj, path.to_string()).await;
+    let update_data = serde_json::from_slice::<UpdateClip>(&body)?;
+    let update = update_clip_meta(update_data, id.to_string()).await;
     match update {
-        Ok(()) => Ok(HttpResponse::Ok().json("success")),
+        Ok(()) => Ok(HttpResponse::Ok().into()),
         Err(_) => Err(error::ErrorBadRequest("malformed request body")),
     }
 }
