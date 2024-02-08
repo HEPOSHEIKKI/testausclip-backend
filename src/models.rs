@@ -1,5 +1,6 @@
 use crate::schema::clips;
 use crate::schema::likes;
+use crate::schema::users;
 use chrono::naive::NaiveDateTime;
 use serde_derive::{Deserialize, Serialize};
 
@@ -9,7 +10,7 @@ pub struct NewClip {
     pub id: String,
     pub title: String,
     pub description: String,
-    pub filename: String,
+    pub file_name: String,
 }
 
 #[derive(Debug, Queryable, AsChangeset, Selectable)]
@@ -19,10 +20,10 @@ pub struct Clip {
     pub title: Option<String>,
     pub description: Option<String>,
     pub private: Option<bool>,
-    pub ownerid: Option<String>,
+    pub owner_id: Option<String>,
     pub game: Option<String>,
-    pub uploaddate: Option<NaiveDateTime>,
-    pub filename: Option<String>,
+    pub upload_date: Option<NaiveDateTime>,
+    pub file_name: Option<String>,
 }
 
 #[derive(Queryable, AsChangeset, Selectable, Debug, Serialize)]
@@ -31,16 +32,16 @@ pub struct ClipMeta {
     pub id: String,
     pub title: Option<String>,
     pub description: Option<String>,
-    pub ownerid: Option<String>,
+    pub owner_id: Option<String>,
     pub private: Option<bool>,
     pub game: Option<String>,
-    pub uploaddate: Option<NaiveDateTime>,
+    pub upload_date: Option<NaiveDateTime>,
 }
 
 #[derive(Queryable, AsChangeset, Selectable)]
 #[diesel(table_name = clips)]
 pub struct ClipFile {
-    pub filename: Option<String>,
+    pub file_name: Option<String>,
 }
 
 #[derive(AsChangeset, Serialize, Deserialize, Debug)]
@@ -55,6 +56,16 @@ pub struct UpdateClip {
 #[derive(Insertable, Queryable, Debug)]
 #[diesel(table_name = likes)]
 pub struct Like {
-    pub clipid: String,
-    pub userid: String,
+    pub clip_id: String,
+    pub user_id: String,
+}
+
+#[derive(Insertable, Queryable, Serialize, Deserialize)]
+#[diesel(table_name = users)]
+pub struct NewUser {
+    pub id: String,
+    pub username: String,
+    pub password: Vec<u8>,
+    pub salt: Vec<u8>,
+    pub auth_token: String,
 }

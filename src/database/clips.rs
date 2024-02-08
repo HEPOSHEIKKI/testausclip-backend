@@ -23,7 +23,7 @@ pub async fn db_create_clip(clip: CreateClip) -> NewClip {
         id: uid.clone(),
         title: clip.title.clone(),
         description: clip.description.clone(),
-        filename: format!("{}.mp4", fileulid),
+        file_name: format!("{}.mp4", fileulid),
     };
 
     diesel::insert_into(clips)
@@ -42,13 +42,13 @@ pub async fn db_remove_clip(clip: RemoveClip) -> Result<String, ()> {
     let get_file_name = db_get_clip_file(uid.clone()).await;
 
     match get_file_name {
-        Some(file_name) => {
+        Some(filename) => {
             let deletion_result: Result<usize, diesel::result::Error> =
                 Ok(diesel::delete(FilterDsl::filter(clips, id.like(uid)))
                     .execute(connection)
                     .expect("Error removing clip from database"));
             if deletion_result == Ok(1) {
-                return Ok(file_name);
+                return Ok(filename);
             } else {
                 return Err(());
             }
@@ -71,7 +71,7 @@ pub async fn db_get_clip_file(clip_id: String) -> Option<String> {
 
     match post {
         Ok(Some(clip_id)) => {
-            let name = clip_id.filename;
+            let name = clip_id.file_name;
             return name;
         }
         Ok(None) => return None,
@@ -153,7 +153,7 @@ pub async fn db_remove_like(like: Like) -> Result<(), ()> {
 
     let remove_like = diesel::delete(FilterDsl::filter(
         likes,
-        clipid.eq(like.clipid).and(userid.eq(like.userid)),
+        clip_id.eq(like.clip_id).and(user_id.eq(like.user_id)),
     ))
     .execute(connection)
     .expect("Could not remove like");
@@ -162,3 +162,7 @@ pub async fn db_remove_like(like: Like) -> Result<(), ()> {
     }
     return Ok(());
 }
+
+
+
+

@@ -18,6 +18,9 @@ mod database;
 mod models;
 mod schema;
 mod storage;
+mod utils;
+
+use utils::generate_token;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct MyConfig {
@@ -32,6 +35,7 @@ async fn ping() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    dbg!(generate_token());
     HttpServer::new(|| {
         App::new()
             .service(ping)

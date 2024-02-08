@@ -168,7 +168,7 @@ pub async fn api_upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpRe
 
                 let create_post = db_create_clip(post).await;
 
-                write_clip_to_file(create_post.filename, &in_memory_data).await;
+                write_clip_to_file(create_post.file_name, &in_memory_data).await;
                 return HttpResponse::Ok().json(create_post.id.clone());
             }
         }
@@ -210,8 +210,8 @@ pub async fn api_add_like(id: web::Path<String>, req: HttpRequest) -> HttpRespon
     match auth {
         Some(user_id) => {
             let like: Like = Like {
-                clipid: id.to_string(),
-                userid: user_id.to_str().unwrap().to_string(),
+                clip_id: id.to_string(),
+                user_id: user_id.to_str().unwrap().to_string(),
             };
             let add_like = db_add_like(like).await;
             match add_like {
@@ -231,8 +231,8 @@ pub async fn api_remove_like(id: web::Path<String>, req: HttpRequest) -> HttpRes
     match auth {
         Some(user_id) => {
             let like: Like = Like {
-                clipid: id.to_string(),
-                userid: user_id.to_str().unwrap().to_string(),
+                clip_id: id.to_string(),
+                user_id: user_id.to_str().unwrap().to_string(),
             };
             let add_like = db_remove_like(like).await;
             match add_like {

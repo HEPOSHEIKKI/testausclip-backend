@@ -1,5 +1,5 @@
 CREATE TABLE Likes (
-    userid VARCHAR(255) REFERENCES users(userid),
-    clipid VARCHAR(255) REFERENCES clips(id),
-    PRIMARY KEY (userid, clipid)
+    user_id VARCHAR(255) REFERENCES users(id),
+    clip_id VARCHAR(255) REFERENCES clips(id),
+    PRIMARY KEY (user_id, clip_id)
 );

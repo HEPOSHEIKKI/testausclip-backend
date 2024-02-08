@@ -22,3 +22,6 @@ diesel = { version = "2.1.4", features = ["chrono", "postgres", "uuid", "r2d2"] 
 chrono = { version = "0.4.33", features = ["serde"] }
 dotenv = "0.15"
 ulid = "1.1.2"
+argon2 = "0.5.3"
+rand = "0.8.5"
+itertools = "0.12.1"
