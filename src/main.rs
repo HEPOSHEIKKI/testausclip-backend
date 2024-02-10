@@ -14,13 +14,15 @@ use api::clip::api_remove_like;
 use api::clip::api_update_clip;
 use api::clip::api_upload_clip;
 
+use api::auth::api_login;
+use api::auth::api_register;
+
 mod database;
 mod models;
 mod schema;
 mod storage;
-mod utils;
+mod requests;
 
-use utils::generate_token;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct MyConfig {
@@ -35,7 +37,6 @@ async fn ping() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    dbg!(generate_token());
     HttpServer::new(|| {
         App::new()
             .service(ping)
@@ -46,6 +47,8 @@ async fn main() -> std::io::Result<()> {
             .service(api_update_clip)
             .service(api_add_like)
             .service(api_remove_like)
+            .service(api_login)
+            .service(api_register)
     })
     .bind("127.0.0.1:8080")?
     .run()
