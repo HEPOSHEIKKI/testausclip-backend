@@ -7,7 +7,7 @@ use actix_web::{
 };
 use file_format::FileFormat;
 use futures_util::{StreamExt, TryStreamExt as _};
-use mime::{Mime, APPLICATION_OCTET_STREAM};
+use mime::Mime;
 
 use crate::database::clips::db_get_clip_meta;
 use crate::database::clips::db_remove_like;
@@ -100,7 +100,7 @@ pub async fn api_remove_clip(id: web::Path<String>) -> HttpResponse {
 pub async fn api_upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpResponse {
     let max_file_size: usize = 300_000_000;
     let max_file_count: usize = 2;
-    let legal_filetypes: [Mime; 1] = [APPLICATION_OCTET_STREAM];
+    let legal_filetypes: [String; 2] = ["application/octet-stream".to_string(), "video/mp4".to_string()];
 
     let content_length: usize = match req.headers().get(CONTENT_LENGTH) {
         Some(header_value) => header_value.to_str().unwrap_or("0").parse().unwrap(),
@@ -127,7 +127,8 @@ pub async fn api_upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpRe
             if filetype.is_none() {
                 continue;
             }
-            if !legal_filetypes.contains(&filetype.unwrap()) {
+            if !legal_filetypes.contains(&filetype.unwrap().to_string()) {
+                dbg!(&filetype);
                 continue;
             }
 
@@ -174,7 +175,6 @@ pub async fn api_upload_clip(mut payload: Multipart, req: HttpRequest) -> HttpRe
         }
         current_count += 1;
     }
-
     HttpResponse::InternalServerError().into()
 }
 

@@ -69,3 +69,21 @@ pub struct NewUser {
     pub salt: Vec<u8>,
     pub auth_token: String,
 }
+
+#[derive(Insertable, Queryable, AsChangeset, Selectable, Serialize, Deserialize, Debug)]
+#[diesel(table_name = users)]
+pub struct User {
+    pub id: String,
+    pub username: String,
+    pub email: String,
+    pub password: Vec<u8>,
+    pub salt: Vec<u8>,
+    pub auth_token: String,
+    pub registration_date: Option<NaiveDateTime>,
+}
+
+#[derive(Insertable, Queryable, AsChangeset, Selectable, Serialize, Deserialize, Debug)]
+#[diesel(table_name = users)]
+pub struct UserName {
+    pub username: String,
+}

@@ -1,9 +1,11 @@
-use actix_web::{get, post, web, HttpResponse};
+use actix_web::{post, web, HttpResponse};
 use crate::requests::RegisterRequest;
+
+use crate::database::auth::user_exists;
 
 
 #[post("/v1/auth/login")]
-pub async fn api_login(data: web::Json<RegisterRequest>) -> HttpResponse {
+pub async fn api_login(_data: web::Json<RegisterRequest>) -> HttpResponse {
     HttpResponse::Ok().into()
 }
 
@@ -15,6 +17,11 @@ pub async fn api_register(data: web::Json<RegisterRequest>) -> HttpResponse {
     if !super::VALID_USERNAME_REGEX.is_match(&data.username) {
         return HttpResponse::BadRequest().json("Bad username");
     }
+    else if user_exists(data.username.clone()).await.unwrap() {
+        return HttpResponse::BadRequest().json("Username is taken");
+    }
+
+    
 
     HttpResponse::Ok().into()
     

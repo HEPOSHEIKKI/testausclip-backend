@@ -1,4 +1,5 @@
 pub mod clips;
+pub mod auth;
 
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
