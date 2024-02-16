@@ -1,6 +1,7 @@
 use crate::schema::clips;
 use crate::schema::likes;
 use crate::schema::users;
+use crate::schema::user_identities;
 use chrono::naive::NaiveDateTime;
 use serde_derive::{Deserialize, Serialize};
 
@@ -82,8 +83,23 @@ pub struct User {
     pub registration_date: Option<NaiveDateTime>,
 }
 
+#[derive(Identifiable, Queryable, Clone, Debug, Serialize, PartialEq, Eq)]
+#[diesel(table_name = user_identities)]
+pub struct UserIdentity {
+    pub id: String,
+    #[serde(skip_serializing)]
+    pub auth_token: String,
+    pub username: String,
+    pub registration_date: Option<NaiveDateTime>,
+}
+
 #[derive(Insertable, Queryable, AsChangeset, Selectable, Serialize, Deserialize, Debug)]
 #[diesel(table_name = users)]
 pub struct UserName {
     pub username: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Eq, PartialEq, Hash)]
+pub struct UserId {
+    pub id: String,
 }

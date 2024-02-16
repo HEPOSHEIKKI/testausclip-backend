@@ -28,6 +28,20 @@ diesel::table! {
 }
 
 diesel::table! {
+    user_identities (id) {
+        #[max_length = 255]
+        id -> Varchar,
+        #[max_length = 50]
+        username -> Varchar,
+        #[max_length = 100]
+        email -> Nullable<Varchar>,
+        #[max_length = 32]
+        auth_token -> Varchar,
+        registration_date -> Nullable<Timestamp>,
+    }
+}
+
+diesel::table! {
     users (id) {
         #[max_length = 255]
         id -> Varchar,
@@ -50,5 +64,6 @@ diesel::joinable!(likes -> users (user_id));
 diesel::allow_tables_to_appear_in_same_query!(
     clips,
     likes,
+    user_identities,
     users,
 );
