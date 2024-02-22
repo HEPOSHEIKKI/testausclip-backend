@@ -1,7 +1,7 @@
 use regex::Regex;
 use lazy_static::lazy_static;
 
-pub mod clip;
+// pub mod clip;
 pub mod auth;
 
 lazy_static!{

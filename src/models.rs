@@ -88,8 +88,9 @@ pub struct User {
 pub struct UserIdentity {
     pub id: String,
     #[serde(skip_serializing)]
-    pub auth_token: String,
     pub username: String,
+    pub email: Option<String>,
+    pub auth_token: String,
     pub registration_date: Option<NaiveDateTime>,
 }
 

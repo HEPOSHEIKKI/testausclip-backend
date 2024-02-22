@@ -26,3 +26,5 @@ rand = "0.8.5"
 itertools = "0.12.1"
 regex = "1.10.3"
 lazy_static = "1.4.0"
+diesel-async = { version = "0.4.1", features = ["postgres", "deadpool"] }
+thiserror = "1.0.57"
