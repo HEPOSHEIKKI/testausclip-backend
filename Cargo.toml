@@ -1,0 +1,15 @@
+[package]
+name = "testausclip_rewrite"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-jwt-auth-middleware = "0.5.0"
+actix-multipart = "0.6.1"
+actix-web = "4.5.1"
+ed25519-compact = "2"
+env_logger = "0.11.3"
+jwt-compact = { version = "0.8.0", features = ["exonum-crypto", "ed25519-compact"] }
+serde = "1.0.201"
