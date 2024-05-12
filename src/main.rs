@@ -3,7 +3,10 @@ use std::time::Duration;
 use actix_jwt_auth_middleware::use_jwt::UseJWTOnScope;
 use actix_jwt_auth_middleware::{Authority, FromRequest, TokenSigner};
 
+use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
+use database::Database;
+
 use ed25519_compact::KeyPair;
 use jwt_compact::alg::Ed25519;
 use serde::{Deserialize, Serialize};
@@ -13,6 +16,10 @@ use api::clip::{get_clip, upload_clip};
 use api::auth::{login, register};
 
 mod requests;
+mod models;
+mod database;
+mod schema;
+mod error;
 
 
 #[derive(Serialize, Deserialize, Debug, Clone, FromRequest)]
@@ -22,8 +29,12 @@ struct User {
 
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenvy::dotenv().ok();
     std::env::set_var("RUST_LOG", "debug");
     env_logger::init();
+
+    let database = Data::new(Database::new(std::env::var("DATABASE_URL").expect("DATABASE_URL must be set")));
+
     let KeyPair {
         pk: public_key,
         sk: secret_key,
@@ -53,6 +64,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .use_jwt(authority.clone(), web::scope("")
                     .service(upload_clip)
                 ))
+            .app_data(Data::clone(&database))
     })
     .bind(("127.0.0.1", 8080))?
     .run()

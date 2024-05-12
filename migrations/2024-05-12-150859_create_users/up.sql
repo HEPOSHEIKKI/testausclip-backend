@@ -1,0 +1,8 @@
+CREATE TABLE Users (
+    id VARCHAR(255) PRIMARY KEY UNIQUE,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100),
+    password BYTEA NOT NULL,
+    salt BYTEA NOT NULL,
+    registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)

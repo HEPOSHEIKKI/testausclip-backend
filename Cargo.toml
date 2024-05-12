@@ -1,5 +1,5 @@
 [package]
-name = "testausclip_rewrite"
+name = "testausclip"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,6 +9,11 @@ edition = "2021"
 actix-jwt-auth-middleware = "0.5.0"
 actix-multipart = "0.6.1"
 actix-web = "4.5.1"
+argon2 = "0.5.3"
+chrono = { version = "0.4.38", features = ["serde"] }
+diesel = { version = "2.1.6", features = ["chrono"] }
+diesel-async = { version = "0.4.1", features = ["postgres", "deadpool"] }
+dotenvy = "0.15.7"
 ed25519-compact = "2"
 env_logger = "0.11.3"
 jwt-compact = { version = "0.8.0", features = ["exonum-crypto", "ed25519-compact"] }
@@ -16,3 +21,5 @@ lazy_static = "1.4.0"
 regex = "1.10.4"
 serde = { version = "1.0.201", features = ["derive"] }
 serde_derive = "1.0.201"
+thiserror = "1.0.60"
+ulid = "1.1.2"

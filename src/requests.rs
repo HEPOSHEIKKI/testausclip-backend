@@ -4,4 +4,5 @@ use serde_derive::Deserialize;
 pub struct RegisterRequest {
     pub username: String,
     pub password: String,
+    pub email: String,
 }
