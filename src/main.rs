@@ -10,7 +10,9 @@ use serde::{Deserialize, Serialize};
 
 mod api;
 use api::clip::{get_clip, upload_clip};
-use api::auth::login;
+use api::auth::{login, register};
+
+mod requests;
 
 
 #[derive(Serialize, Deserialize, Debug, Clone, FromRequest)]
@@ -46,6 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         App::new()
             .service(web::scope("/v1")
                 .service(login)
+                .service(register)
                 .service(get_clip)
                 .use_jwt(authority.clone(), web::scope("")
                     .service(upload_clip)
