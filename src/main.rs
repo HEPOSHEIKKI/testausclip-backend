@@ -15,6 +15,7 @@ mod api;
 use api::clip::{get_clip, upload_clip};
 use api::auth::{login, register};
 
+mod config;
 mod requests;
 mod models;
 mod database;
@@ -29,11 +30,10 @@ struct User {
 
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    dotenvy::dotenv().ok();
-    std::env::set_var("RUST_LOG", "debug");
-    env_logger::init();
 
-    let database = Data::new(Database::new(std::env::var("DATABASE_URL").expect("DATABASE_URL must be set")));
+    let config = config::read_config("config.toml");
+
+    let database = Data::new(Database::new(format!("postgres://{}:{}@{}:{}/testausclip", config.database.username, config.database.password, config.database.address, config.database.port)));
 
     let KeyPair {
         pk: public_key,
@@ -66,7 +66,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ))
             .app_data(Data::clone(&database))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind((config.testausclip.ip, config.testausclip.port))?
     .run()
     .await?;
 
