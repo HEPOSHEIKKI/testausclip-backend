@@ -1,4 +1,7 @@
+use std::sync::Arc;
 use std::time::Duration;
+
+use spdlog::prelude::*;
 
 use actix_jwt_auth_middleware::use_jwt::UseJWTOnScope;
 use actix_jwt_auth_middleware::{Authority, FromRequest, TokenSigner};
@@ -31,9 +34,15 @@ struct User {
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
-    let config = config::read_config("config.toml");
+    info!("Starting Testausclip");
 
-    let database = Data::new(Database::new(format!("postgres://{}:{}@{}:{}/testausclip", config.database.username, config.database.password, config.database.address, config.database.port)));
+    let default_logger: Arc<Logger> = spdlog::default_logger();
+    default_logger.set_level_filter(LevelFilter::All);
+
+    let config = config::read_config("config.toml");
+    let database = Data::new(Database::new(format!("postgres://{}:{}@{}:{}/testausclip?connect_timeout={}", config.database.username, config.database.password, config.database.address, config.database.port, config.database.timeout)));
+
+    info!("Generating JWT key pair");
 
     let KeyPair {
         pk: public_key,

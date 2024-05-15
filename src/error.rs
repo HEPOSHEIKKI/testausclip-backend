@@ -3,6 +3,8 @@ use actix_web::{
     http::{header::ContentType, StatusCode},
     HttpResponse,
 };
+
+
 use thiserror::Error;
 #[allow(dead_code)]
 #[derive(Debug, Error)]
@@ -53,8 +55,19 @@ impl ResponseError for ClipError {
     }
 
     fn error_response(&self) -> HttpResponse {
-        HttpResponse::build(self.status_code())
-            .insert_header(ContentType::json())
-            .body(self.to_string())
+
+        match self.status_code() {
+
+            // Match error 500 and strip any backend error messages
+
+            StatusCode::INTERNAL_SERVER_ERROR => {
+                HttpResponse::build(self.status_code())
+                    .insert_header(ContentType::json())
+                    .body("Internal Error".to_string())
+            },
+            _ => HttpResponse::build(self.status_code())
+                    .insert_header(ContentType::json())
+                    .body(self.to_string())
+        }
     }
 }

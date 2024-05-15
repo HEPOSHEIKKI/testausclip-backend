@@ -1,10 +1,29 @@
 use argon2::{password_hash::{rand_core::OsRng, SaltString, PasswordHasher}, Argon2};
+use diesel::{query_dsl::methods::FilterDsl, ExpressionMethods};
 use diesel_async::RunQueryDsl;
 use ulid::Ulid;
 
 use crate::{error::ClipError, models::*};
 
+
+#[allow(non_snake_case)]
+
 impl super::DatabaseWrapper {
+
+    pub async fn user_exists(&self, target_username: String) -> Result<bool, ClipError> {
+        use crate::schema::users::dsl::*;
+
+        let mut conn = self.db.get().await?;
+        let res: Result<usize, diesel::result::Error> = users.filter(username.eq(target_username)).execute(&mut conn).await;
+        match res {
+            Ok(1) => return Err(ClipError::UserExists),
+            Ok(0) => return Ok(true),
+            Err(e) => return Err(ClipError::DieselError(e)),
+            _ => return Err(ClipError::UnknownError),
+        };
+    }
+
+
     pub async fn register_user(&self, new_username: String, new_password: String, new_email: String) -> Result<bool, ClipError>{
         let password_salt = SaltString::generate(&mut OsRng);
         let argon2 = Argon2::default();
@@ -26,14 +45,16 @@ impl super::DatabaseWrapper {
 
         let mut conn = self.db.get().await?;
 
-        let kaka = diesel::insert_into(users::table)
+        let res: Result<usize, diesel::result::Error> = diesel::insert_into(users::table)
             .values(new_user_clone)
             .execute(&mut conn)
-            .await?;
+            .await;
 
-        dbg!(kaka);
-
-        Ok(true)
+        match res {
+            Err(e) => {
+                return Err(ClipError::DieselError(e))},
+            Ok(_) => return Ok(true),
+        };
 
     }
 }

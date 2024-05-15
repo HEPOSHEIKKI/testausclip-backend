@@ -1,6 +1,8 @@
 use serde_derive::Deserialize;
 use std::{fs, process::exit};
 
+use spdlog::prelude::*;
+
 
 
 #[derive(Deserialize)]
@@ -21,13 +23,15 @@ pub struct Database {
     pub port: u16,
     pub username: String,
     pub password: String,
+    pub timeout: u16,
 }
 
 pub fn read_config(config_file: &str) -> Data{
+    info!("Reading configuration file at {}", &config_file);
     let contents = match fs::read_to_string(&config_file){
         Ok(c) => c,
         Err(_) => {
-            println!("Could not read config file `{}`", config_file);
+            error!("Could not read config file `{}`", config_file);
             exit(1);
         }
     };
@@ -35,7 +39,7 @@ pub fn read_config(config_file: &str) -> Data{
     let data: Data = match toml::from_str(&contents) {
         Ok(d) => d,
         Err(_) => {
-            println!("Invalid configuration file: `{}`", config_file);
+            error!("Invalid configuration file: `{}`", config_file);
             exit(1);
         }
     };

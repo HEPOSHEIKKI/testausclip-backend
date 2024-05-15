@@ -1,4 +1,4 @@
-use std::{future::Future, pin::Pin, sync::Arc};
+use std::{future::Future, pin::Pin, process::exit, sync::Arc};
 use actix_web::{dev::Payload, web::Data, FromRequest, HttpRequest};
 use diesel_async::{
     pooled_connection::{
@@ -7,6 +7,7 @@ use diesel_async::{
     },
     AsyncPgConnection,
 };
+use spdlog::{error, info};
 
 use crate::error::ClipError;
 
@@ -48,12 +49,21 @@ impl Database {
     }
 
     pub fn new(url: String) -> Self {
+        info!("Creating database pool");
         let manager = AsyncDieselConnectionManager::<AsyncPgConnection>::new(url);
 
-        let pool = Pool::builder(manager)
-            .build()
-            .expect("Failed to create connection pool");
-
+        let pool = match Pool::builder(manager)
+            .build() {
+                Ok(pool) => {
+                    info!("Created database pool");
+                    pool
+                }
+                Err(_) => {
+                    error!("Failed to create a database pool");
+                    exit(1);
+                }
+            };
         Self { backend: pool }
     }
+
 }
