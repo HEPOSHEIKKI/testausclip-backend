@@ -1,11 +1,22 @@
+use actix_jwt_auth_middleware::AuthError;
 use actix_web::{
-    error::ResponseError,
     http::{header::ContentType, StatusCode},
-    HttpResponse,
+    HttpResponse, ResponseError,
 };
 
-
 use thiserror::Error;
+
+impl From<AuthError> for ClipError {
+    fn from(err: AuthError) -> Self {
+        match err {
+            AuthError::NoToken => return ClipError::Unauthorized,
+            AuthError::NoTokenSigner => return ClipError::SignerError,
+            AuthError::TokenCreation(err) => return ClipError::TokenCreationError(err.to_string()),
+            _ => return ClipError::JWTMiddleWareError,
+        }
+    }
+}
+
 #[allow(dead_code)]
 #[derive(Debug, Error)]
 pub enum ClipError {
@@ -35,6 +46,14 @@ pub enum ClipError {
     UnknownError,
     #[error("You are trying to register again after a short time")]
     TooManyRegisters,
+    #[error("{0}")]
+    InvalidLength(String),
+    #[error("Token signer malfunctioned or invalid")]
+    SignerError,
+    #[error("{0}")]
+    TokenCreationError(String),
+    #[error("Generic JWT middleware error")]
+    JWTMiddleWareError,
 }
 
 impl ResponseError for ClipError {

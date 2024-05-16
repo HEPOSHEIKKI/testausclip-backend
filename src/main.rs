@@ -4,7 +4,7 @@ use std::time::Duration;
 use spdlog::prelude::*;
 
 use actix_jwt_auth_middleware::use_jwt::UseJWTOnScope;
-use actix_jwt_auth_middleware::{Authority, FromRequest, TokenSigner};
+use actix_jwt_auth_middleware::{Authority, TokenSigner};
 
 use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
@@ -12,7 +12,7 @@ use database::Database;
 
 use ed25519_compact::KeyPair;
 use jwt_compact::alg::Ed25519;
-use serde::{Deserialize, Serialize};
+
 
 mod api;
 use api::clip::{get_clip, upload_clip};
@@ -25,11 +25,8 @@ mod database;
 mod schema;
 mod error;
 
+use models::UserClaims;
 
-#[derive(Serialize, Deserialize, Debug, Clone, FromRequest)]
-struct User {
-    id: u32,
-}
 
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -50,7 +47,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     } = KeyPair::generate();
 
     HttpServer::new(move || {
-        let authority = Authority::<User, Ed25519, _, _>::new()
+        let authority = Authority::<UserClaims, Ed25519, _, _>::new()
+            .renew_access_token_automatically(true)
+            .renew_refresh_token_automatically(false)
             .refresh_authorizer(|| async move { Ok(()) })
             .token_signer(Some(
                 TokenSigner::new()
