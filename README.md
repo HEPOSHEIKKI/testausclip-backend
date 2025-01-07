@@ -1,2 +1,1 @@
-# CURRENTLY REWRITING ON THE `rewrite-jwt` BRANCH
-This is a very crude prototype for the backend to testausclip
+# STILL UNDER ACTIVE DEVELOPMENT IN A PRIVATE REPOSITORY. WILL MERGE WHEN I HAVE A MVP.
